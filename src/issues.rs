@@ -8,10 +8,10 @@ use std::process::Command;
 pub struct Issues {
     dir_searched: i32,
     no_git_repo: Vec<String>,
+    no_remote: Vec<String>,
     not_committed: Vec<String>,
     not_pushed: Vec<String>,
     have_diverged: Vec<String>,
-    no_remote: Vec<String>,
 }
 
 impl Issues {
@@ -38,22 +38,22 @@ impl Issues {
             format!(
                 "\
                 {} ................. {}\n\
-                {} .. {}\n\
-                {} .. {}\n\
-                {} .. {}\n\
                 {} ... {}\n\
+                {} .. {}\n\
+                {} .. {}\n\
+                {} .. {}\n\
                 {} .................. {}/{}\
                 ",
                 "Non Git Repos".blue(),
                 colorize(self.no_git_repo.len()),
+                "Repos with No Remote Origin".blue(),
+                colorize(self.no_remote.len()),
                 "Repos with Uncommitted Files".blue(),
                 colorize(self.not_committed.len()),
                 "Repos with Un-pushed Commits".blue(),
                 colorize(self.not_pushed.len()),
                 "Repos with Diverged Branches".blue(),
                 colorize(self.have_diverged.len()),
-                "Repos with No Remote Origin".blue(),
-                colorize(self.no_remote.len()),
                 "Total Issues".blue(),
                 colorize(total),
                 self.dir_searched,
@@ -62,10 +62,10 @@ impl Issues {
             format!(
                 "\
                 Non Git Repos ................. {}\n\
+                Repos with No Remote Origin ... {}\n\
                 Repos with Uncommitted Files .. {}\n\
                 Repos with Un-pushed Commits .. {}\n\
                 Repos with Diverged Branches .. {}\n\
-                Repos with No Remote Origin ... {}\n\
                 Total Issues .................. {}/{}\
                 ",
                 self.no_git_repo.len(),
@@ -99,10 +99,10 @@ impl Issues {
         let mut s = String::new();
 
         section(&mut s, "Non Git Repos", &self.no_git_repo);
+        section(&mut s, "Repos with No Remote Origin", &self.no_remote);
         section(&mut s, "Repos with Uncommitted Files", &self.not_committed);
         section(&mut s, "Repos with Un-pushed Commits", &self.not_pushed);
         section(&mut s, "Repos with Diverged Branches", &self.have_diverged);
-        section(&mut s, "Repos with No Remote Origin", &self.no_remote);
 
         s.push_str(&*self.overview(args));
         s
