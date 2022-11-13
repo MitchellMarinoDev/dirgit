@@ -174,7 +174,7 @@ fn find_issues_with(path: String, issues: &mut Issues, args: Args) {
         .stderr
         .starts_with(b"fatal: not a git repository")
     {
-        return issues.current_branch_untracked.push(path.clone());
+        return issues.no_git_repo.push(path.clone());
     }
 
     if !is_sub(&git_remote.stdout, b"origin") {
