@@ -24,6 +24,10 @@ impl Issues {
     }
 
     pub fn overview(&self, args: Args) -> String {
+        fn colorize(u: usize) -> String {
+            if u > 0 { format!("{}", u.to_string().bold().red()) } else { format!("{}", u.to_string().green()) }
+        }
+
         let total = self.no_git_repo.len()
             + self.not_committed.len()
             + self.not_pushed.len()
@@ -41,17 +45,17 @@ impl Issues {
                 {} .................. {}/{}\
                 ",
                 "Non Git Repos".blue(),
-                self.no_git_repo.len(),
+                colorize(self.no_git_repo.len()),
                 "Repos with Uncommitted Files".blue(),
-                self.not_committed.len(),
+                colorize(self.not_committed.len()),
                 "Repos with Un-pushed Commits".blue(),
-                self.not_pushed.len(),
+                colorize(self.not_pushed.len()),
                 "Repos with Diverged Branches".blue(),
-                self.have_diverged.len(),
+                colorize(self.have_diverged.len()),
                 "Repos with No Remote Origin".blue(),
-                self.no_remote.len(),
+                colorize(self.no_remote.len()),
                 "Total Issues".blue(),
-                total,
+                colorize(total),
                 self.dir_searched,
             )
         } else {
