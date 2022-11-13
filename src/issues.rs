@@ -147,11 +147,22 @@ fn find_issues_with(path: String, issues: &mut Issues, args: Args) {
         .output()
         .expect("`git status` command failed");
 
+    // check for remote
+    let git_remote = Command::new("git")
+        .arg("remote")
+        .current_dir(&path)
+        .output()
+        .expect(&*format!("`git remote` command failed on dir {}", path));
+
     if git_status
         .stderr
         .starts_with(b"fatal: not a git repository")
     {
         return issues.no_git_repo.push(path.clone());
+    }
+
+    if !is_sub(&git_remote.stdout, b"origin") {
+        return issues.no_remote.push(path.clone());
     }
 
     if is_sub(&git_status.stdout, b"Changes to be committed:")
@@ -167,17 +178,6 @@ fn find_issues_with(path: String, issues: &mut Issues, args: Args) {
 
     if is_sub(&git_status.stdout, b"have diverged") {
         return issues.have_diverged.push(path.clone());
-    }
-
-    // check for remote
-    let git_remote = Command::new("git")
-        .arg("remote")
-        .current_dir(&path)
-        .output()
-        .expect(&*format!("`git remote` command failed on dir {}", path));
-
-    if !is_sub(&git_remote.stdout, b"origin") {
-        return issues.no_remote.push(path.clone());
     }
 }
 
