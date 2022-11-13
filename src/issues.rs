@@ -9,6 +9,7 @@ pub struct Issues {
     dir_searched: i32,
     no_git_repo: Vec<String>,
     no_remote: Vec<String>,
+    current_branch_untracked: Vec<String>,
     not_committed: Vec<String>,
     not_pushed: Vec<String>,
     have_diverged: Vec<String>,
@@ -37,17 +38,20 @@ impl Issues {
         if args.color {
             format!(
                 "\
-                {} ................. {}\n\
-                {} ... {}\n\
+                {} ........................ {}\n\
+                {} .......... {}\n\
                 {} .. {}\n\
-                {} .. {}\n\
-                {} .. {}\n\
-                {} .................. {}/{}\
+                {} ......... {}\n\
+                {} ......... {}\n\
+                {} ......... {}\n\
+                {} ......................... {}/{}\
                 ",
                 "Non Git Repos".blue(),
                 colorize(self.no_git_repo.len()),
                 "Repos with No Remote Origin".blue(),
                 colorize(self.no_remote.len()),
+                "Repos with Current Branch Untracked".blue(),
+                colorize(self.current_branch_untracked.len()),
                 "Repos with Uncommitted Files".blue(),
                 colorize(self.not_committed.len()),
                 "Repos with Un-pushed Commits".blue(),
@@ -61,18 +65,20 @@ impl Issues {
         } else {
             format!(
                 "\
-                Non Git Repos ................. {}\n\
-                Repos with No Remote Origin ... {}\n\
-                Repos with Uncommitted Files .. {}\n\
-                Repos with Un-pushed Commits .. {}\n\
-                Repos with Diverged Branches .. {}\n\
-                Total Issues .................. {}/{}\
+                Non Git Repos ........................ {}\n\
+                Repos with No Remote Origin .......... {}\n\
+                Repos with Current Branch Untracked .. {}\n\
+                Repos with Uncommitted Files ......... {}\n\
+                Repos with Un-pushed Commits ......... {}\n\
+                Repos with Diverged Branches ......... {}\n\
+                Total Issues ......................... {}/{}\
                 ",
                 self.no_git_repo.len(),
+                self.no_remote.len(),
+                self.current_branch_untracked.len(),
                 self.not_committed.len(),
                 self.not_pushed.len(),
                 self.have_diverged.len(),
-                self.no_remote.len(),
                 total,
                 self.dir_searched,
             )
@@ -100,6 +106,7 @@ impl Issues {
 
         section(&mut s, "Non Git Repos", &self.no_git_repo);
         section(&mut s, "Repos with No Remote Origin", &self.no_remote);
+        section(&mut s, "Repos with Current Branch Untracked", &self.current_branch_untracked);
         section(&mut s, "Repos with Uncommitted Files", &self.not_committed);
         section(&mut s, "Repos with Un-pushed Commits", &self.not_pushed);
         section(&mut s, "Repos with Diverged Branches", &self.have_diverged);
@@ -154,15 +161,36 @@ fn find_issues_with(path: String, issues: &mut Issues, args: Args) {
         .output()
         .expect(&*format!("`git remote` command failed on dir {}", path));
 
+    // check if current branch is tracked
+    let git_branch_vv = Command::new("git")
+        .arg("branch")
+        .arg("-vv")
+        .arg("--color=never")
+        .current_dir(&path)
+        .output()
+        .expect(&*format!("`git remote` command failed on dir {}", path));
+
     if git_status
         .stderr
         .starts_with(b"fatal: not a git repository")
     {
-        return issues.no_git_repo.push(path.clone());
+        return issues.current_branch_untracked.push(path.clone());
     }
 
     if !is_sub(&git_remote.stdout, b"origin") {
         return issues.no_remote.push(path.clone());
+    }
+
+    let git_branch_vv_out = String::from_utf8(git_branch_vv.stdout.clone()).expect("`git branch -vv` gave invalid utf-8");
+    let current_branch = git_branch_vv_out.lines().filter_map(|l| {
+        let mut words = l.split(" ");
+        if words.next() == Some("*") {
+            return words.next();
+        }
+        None
+    }).next().expect("could not find current branch");
+    if !is_sub(&git_branch_vv.stdout, format!("[origin/{}", current_branch).as_bytes()) {
+        return issues.current_branch_untracked.push(path.clone());
     }
 
     if is_sub(&git_status.stdout, b"Changes to be committed:")
