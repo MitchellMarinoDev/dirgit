@@ -1,9 +1,12 @@
 [package]
 name = "dirgit"
 version = "0.1.0"
+authors = ["Mitchell Marino <mitchoah@gmail.com>"]
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+description = "A cli tool that lets you quickly check the git status of all the current directory (or subdirectories)."
+readme = "README.md"
+repository = "https://github.com/MitchellMarinoDev/carrier-pigeon/"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 clap = { version = "4.0", features = ["derive"] }

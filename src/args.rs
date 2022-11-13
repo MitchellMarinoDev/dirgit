@@ -1,6 +1,6 @@
 use clap::Parser;
 
-/// A program that lets you quickly check the git status of all the current directory
+/// A cli tool that lets you quickly check the git status of all the current directory
 /// (or subdirectories).
 ///
 /// This lets you know if all your programs are backed up in git.
