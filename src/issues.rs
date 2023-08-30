@@ -73,6 +73,9 @@ impl Issues {
             &self.have_diverged,
         );
 
+        if s.is_empty() {
+            return "No issues found :)".bold().green().to_string();
+        }
         s.trim_end().to_owned()
     }
 }
